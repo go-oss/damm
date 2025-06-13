@@ -87,7 +87,7 @@ func TestDamm64_matrix(t *testing.T) {
 	t.Parallel()
 	d64 := damm.New64()
 	m := genMatrix(d64)
-	isWeaklyTotallyAntiSymmetric(t, m, d64.Modulus())
+	assertWeaklyTotallyAntiSymmetric(t, m, d64.Modulus())
 	for i := range matrix64 {
 		for j := range matrix64[i] {
 			if got := m[i][j]; got != matrix64[i][j] {
@@ -101,7 +101,7 @@ func TestDamm32_matrix(t *testing.T) {
 	t.Parallel()
 	d32 := damm.New32()
 	m := genMatrix(d32)
-	isWeaklyTotallyAntiSymmetric(t, m, d32.Modulus())
+	assertWeaklyTotallyAntiSymmetric(t, m, d32.Modulus())
 }
 
 func TestDamm64_Generate(t *testing.T) {
@@ -175,22 +175,29 @@ func TestDamm64_Verify(t *testing.T) {
 	}
 }
 
-func isWeaklyTotallyAntiSymmetric(t *testing.T, m [][]int, modulus int) {
+func assertWeaklyTotallyAntiSymmetric(t *testing.T, m [][]int, modulus int) {
 	t.Helper()
 	if len(m) != modulus {
 		t.Fatalf("len(m) = %d; want %d", len(m), modulus)
 	}
+	for y := range modulus {
+		if len(m[y]) != modulus {
+			t.Fatalf("len(m[%d]) = %d; want %d", y, len(m[y]), modulus)
+		}
+		for x := range modulus {
+			if m[y][x] < 0 || m[y][x] >= modulus {
+				t.Fatalf("should be 0 < x * y <= %d: x=%d, y=%d, x * y=%d", modulus, x, y, m[y][x])
+			}
+			if y == x && m[y][x] != 0 {
+				t.Fatalf("should be x * x = 0, x=%d, x * x = %d", x, m[y][x])
+			}
+		}
+	}
 	for c := range modulus {
 		for y := range modulus {
-			if len(m[y]) != modulus {
-				t.Fatalf("len(m[%d]) = %d; want %d", y, len(m[y]), modulus)
-			}
 			for x := range modulus {
 				if y != x && m[m[c][y]][x] == m[m[c][x]][y] {
 					t.Fatalf("should be (c * x) * y = (c * y) * x => x = y: c=%d, x=%d, y=%d, (c * x) * y=%d, (c * y) * x=%d", c, x, y, m[m[c][y]][x], m[m[c][x]][y])
-				}
-				if y == x && m[y][x] != 0 {
-					t.Fatalf("should be x * x = 0, x=%d, x * x = %d", x, m[y][x])
 				}
 			}
 		}
