@@ -27,9 +27,7 @@ func (d *damm) Generate(digits []int) int {
 }
 
 func (d *damm) Verify(digits []int) bool {
-	last := len(digits) - 1
-	checkDigit := calculate(digits[:last], d.modulus, d.mask)
-	return checkDigit == digits[last]
+	return calculate(digits, d.modulus, d.mask) == 0
 }
 
 func (d *damm) Modulus() int {
